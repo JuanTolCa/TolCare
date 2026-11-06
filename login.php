@@ -53,7 +53,9 @@ if (!$setupMode && !$missingTable && isset($_POST['login'])) {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    $stmt = $conn->prepare("SELECT id, username, password_hash FROM users WHERE username = ?");
+    // Users created before the expires_at column existed simply have no
+    // expiry (SELECT * keeps working with or without that column).
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -61,11 +63,18 @@ if (!$setupMode && !$missingTable && isset($_POST['login'])) {
     $stmt->close();
 
     if ($user && password_verify($password, $user['password_hash'])) {
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        session_regenerate_id(true);
-        header('Location: /index.php');
-        exit;
+        // Demo accounts can expire: if expires_at is set and today is past
+        // it, the password is right but the account no longer works.
+        $expires_at = $user['expires_at'] ?? null;
+        if (!empty($expires_at) && $expires_at < date('Y-m-d')) {
+            $error = 'This demo account has expired.';
+        } else {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            session_regenerate_id(true);
+            header('Location: /index.php');
+            exit;
+        }
     } else {
         $error = 'Wrong username or password.';
     }

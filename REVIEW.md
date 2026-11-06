@@ -53,7 +53,48 @@ Employee — TolCare", "Employee Catalog — TolCare") instead of just
 heading; edit/list pages show their titles. Updated zip delivered
 (`TolCare-fixed-2026-11-06.zip`, rebuilt).
 
-## Nov 6, 2026 — step 1 DONE: Save button + Finish + CSV export + logged-in user
+## Nov 6, 2026 — step 2 DONE: live at tolcare.freehosting.dev
+
+- **Deployed via browser to InfinityFree** (free tier): account
+  if0_43376386, domain tolcare.freehosting.dev. DB
+  if0_43376386_tolcare on sql200.infinityfree.com (10 tables).
+  Files uploaded to htdocs root; `config/db.php` set to the live DB.
+- **Demo user works:** demo / demo1234, expires 2027-02-06. Login
+  verified live — home shows "Logged in as: demo".
+- **Sign-in took 4 tries:** the saved vault login kept failing (first
+  a wrong username, then the hosting credential instead of the
+  client-area one). The password he finally sent in chat, saved to the
+  vault via a fresh card, worked. Lesson: client-area login (email +
+  registration password) and hosting login (if0_... + hosting password)
+  are different — do not mix them.
+- **Quirk:** InfinityFree shows a short JavaScript check page (aes.js)
+  to first-time visitors before the real page; normal browsers pass it
+  automatically. curl gets an empty reply — expected on this host, not
+  a broken site.
+
+- **Host: InfinityFree** (free tier). PHP 8.4, MySQL 8.0, 5 GB disk,
+  free subdomain, free SSL, no ads on the site, no credit card. Limits:
+  50,000 hits/day, no email service, no cron jobs. Verified via search
+  Nov 6, 2026.
+- **Demo-user expiry built and verified live.** New migration
+  `sql/002_users_expires_at.sql` adds a nullable `expires_at` DATE
+  column to `users`; `login.php` now refuses an account whose
+  `expires_at` is past, with "This demo account has expired." Admin
+  accounts keep NULL (never expire). The check tolerates databases
+  without the column yet (`SELECT *` + `?? null`). Tested: valid demo
+  logs in, expired demo is refused, admin logs in, wrong password
+  still says "Wrong username or password."
+- **Deployment package:** `TolCare-deploy.zip` (sanitized db.php,
+  logs stripped from tolcare.sql, expiry code included).
+
+README rewritten as a proper project front page (features, tech,
+history, setup) and updated: Save is now wired (the old note saying
+Save does nothing was removed). A clean copy was prepared for GitHub
+(`TolCare-github.zip`): `config/db.php` sanitized to placeholders (no
+real credentials), the 665 access-log rows stripped from `tolcare.sql`
+(table kept, test data only), `.gitignore` added (ignores
+`config/db.php` for future CLI use). No email, phone or personal files
+anywhere in the copy. Repo to create: `JuanTolCa/TolCare` (public).
 
 - **Save wired.** New `agenda/shift_logic.php` holds the generation logic
   shared by the preview and the save, so saved = shown. New
